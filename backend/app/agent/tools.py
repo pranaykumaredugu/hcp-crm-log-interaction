@@ -151,9 +151,13 @@ as the current record. No prose, no markdown."""
         content = resp.content.strip().replace("```json", "").replace("```", "").strip()
         updates = json.loads(content)
 
+        LIST_FIELDS = {"attendees", "materials_shared", "samples_distributed"}
         for key, value in updates.items():
-            if hasattr(interaction, key) and value not in (None, ""):
-                setattr(interaction, key, value)
+            if not hasattr(interaction, key) or value in (None, ""):
+                continue
+            if key in LIST_FIELDS and not isinstance(value, list):
+                continue  # skip malformed non-list values for list fields
+            setattr(interaction, key, value)
 
         interaction.updated_at = datetime.utcnow()
         db.commit()
@@ -173,24 +177,49 @@ as the current record. No prose, no markdown."""
 
 @tool
 def search_hcp(query: str) -> str:
-    """Search for existing HCPs by (partial) name for autocomplete in the
-    'HCP Name' field. Returns a JSON list of matches with id/name/specialty."""
+    """Search for existing HCPs by (partial) name. Returns each match's full
+    profile: name, hospital, products/materials discussed across all visits,
+    last visit date, total interaction count, and whether a follow-up is
+    still pending - used for the 'HCP Name' autocomplete and for rep lookups
+    like 'find Dr. X' or 'show me details on Dr. X'."""
     db = SessionLocal()
     try:
         matches = db.query(HCP).filter(HCP.name.ilike(f"%{query}%")).limit(10).all()
-        return json.dumps([
-            {"id": h.id, "name": h.name, "specialty": h.specialty, "hospital": h.hospital}
-            for h in matches
-        ])
+        results = []
+        for h in matches:
+            interactions = (
+                db.query(Interaction)
+                .filter(Interaction.hcp_id == h.id)
+                .order_by(Interaction.interaction_datetime.desc())
+                .all()
+            )
+            products = set()
+            for i in interactions:
+                products.update(i.materials_shared or [])
+                products.update(i.samples_distributed or [])
+            last_visit = interactions[0].interaction_datetime.isoformat() if interactions else None
+            follow_up_pending = bool(interactions and interactions[0].follow_up_actions)
+            results.append({
+                "id": h.id,
+                "name": h.name,
+                "specialty": h.specialty,
+                "hospital": h.hospital,
+                "products_discussed": sorted(products),
+                "last_visit": last_visit,
+                "total_interactions": len(interactions),
+                "follow_up_status": "pending" if follow_up_pending else "none",
+            })
+        return json.dumps(results)
     finally:
         db.close()
 
 
 @tool
 def get_interaction_history(hcp_name: str) -> str:
-    """Fetch prior logged interactions for a given HCP, most recent first.
-    Used to give the agent/chat context (e.g. 'last time Dr. Smith asked
-    about pricing') before logging a new interaction or suggesting follow-ups."""
+    """Fetch prior logged interactions for a given HCP, most recent first,
+    with a per-visit summary and products discussed. Used to give the
+    agent/chat context (e.g. 'last time Dr. Smith asked about pricing')
+    before logging a new interaction or suggesting follow-ups."""
     db = SessionLocal()
     try:
         hcp = db.query(HCP).filter(HCP.name.ilike(hcp_name.strip())).first()
@@ -210,9 +239,9 @@ def get_interaction_history(hcp_name: str) -> str:
                     "id": i.id,
                     "date": i.interaction_datetime.isoformat(),
                     "type": i.interaction_type,
-                    "topics": i.topics_discussed,
+                    "summary": f"{i.topics_discussed or 'No topics recorded'} - {i.outcomes or 'no outcome recorded'}",
+                    "products_discussed": (i.materials_shared or []) + (i.samples_distributed or []),
                     "sentiment": i.sentiment,
-                    "outcomes": i.outcomes,
                 }
                 for i in interactions
             ],
