@@ -1,0 +1,106 @@
+:root {
+  --border: #e2e5ea;
+  --text: #1f2430;
+  --muted: #6b7280;
+  --accent: #2f6fed;
+  --panel-bg: #f7f9fc;
+  --danger: #e2574c;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Inter", -apple-system, sans-serif;
+  color: var(--text);
+  background: #ffffff;
+}
+
+.screen {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.card h2 {
+  margin-top: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.field { margin-bottom: 14px; }
+.field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+}
+.row { display: flex; gap: 12px; }
+.row > .field { flex: 1; }
+
+.sentiment-options { display: flex; gap: 16px; font-size: 13px; }
+.sentiment-options label { display: flex; align-items: center; gap: 6px; color: var(--text); }
+
+button.primary {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+button.secondary {
+  background: white;
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  height: 560px;
+}
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--panel-bg);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+}
+.chat-bubble {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  max-width: 90%;
+}
+.chat-bubble.user { background: white; border: 1px solid var(--border); margin-left: auto; }
+.chat-bubble.ai { background: #eaf1ff; }
+
+.chat-input-row { display: flex; gap: 8px; margin-top: 10px; }
+.chat-input-row input { flex: 1; }
+
+.suggestions { margin-top: 10px; font-size: 12px; color: var(--muted); }
+.suggestions li { margin-bottom: 4px; }
