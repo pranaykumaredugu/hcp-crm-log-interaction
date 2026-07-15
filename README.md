@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AI-First CRM — HCP Module: Log Interaction Screen
 
 A prototype of the "Log Interaction Screen" for a Healthcare Professional (HCP)
@@ -148,3 +149,6 @@ better-quality suggestions.
 - Voice-note transcription ("Summarize from Voice Note") is stubbed as a UI
   affordance; wiring an actual speech-to-text provider is a follow-up.
 - Materials/Samples are free-text tags rather than a linked catalog table.
+=======
+# hcp-crm-log-interaction
+>>>>>>> 93b6ca3c936d501c7230170da5aed00831a375f1
