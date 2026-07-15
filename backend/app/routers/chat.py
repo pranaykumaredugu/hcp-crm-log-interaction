@@ -16,8 +16,9 @@ _SESSION_HISTORY: dict[str, list] = {}
 
 @router.post("", response_model=ChatResponse)
 def chat(req: ChatRequest):
-    session_key = req.hcp_name or "default"
+    session_key = req.interaction_id or req.hcp_name or "default"
     history = _SESSION_HISTORY.get(session_key, [])
+
 
     user_text = req.message
     if req.interaction_id:

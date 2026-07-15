@@ -88,17 +88,20 @@ def log_interaction(raw_text: str, hcp_name_hint: Optional[str] = None) -> str:
         if sentiment not in [e.value for e in SentimentEnum]:
             sentiment = "neutral"
 
+        def _as_list(value):
+            return value if isinstance(value, list) else []
+
         interaction = Interaction(
             hcp_id=hcp.id,
             interaction_type=itype,
             interaction_datetime=datetime.utcnow(),
-            attendees=data.get("attendees", []),
-            topics_discussed=data.get("topics_discussed", ""),
-            materials_shared=data.get("materials_shared", []),
-            samples_distributed=data.get("samples_distributed", []),
+            attendees=_as_list(data.get("attendees")),
+            topics_discussed=data.get("topics_discussed", "") or "",
+            materials_shared=_as_list(data.get("materials_shared")),
+            samples_distributed=_as_list(data.get("samples_distributed")),
             sentiment=sentiment,
-            outcomes=data.get("outcomes", ""),
-            follow_up_actions=data.get("follow_up_actions", ""),
+            outcomes=data.get("outcomes", "") or "",
+            follow_up_actions=data.get("follow_up_actions", "") or "",
             raw_source_text=raw_text,
         )
         db.add(interaction)
